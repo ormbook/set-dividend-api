@@ -1,5 +1,7 @@
 fastapi>=0.115,<1
 uvicorn[standard]>=0.30,<1
 httpx>=0.27,<1
+# Windows has no system timezone database; zoneinfo('Asia/Bangkok') needs this
+tzdata>=2024.1
 # Recommended: browser TLS impersonation, SET may block plain HTTP clients
 curl_cffi>=0.7
