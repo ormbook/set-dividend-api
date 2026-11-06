@@ -91,4 +91,19 @@ def create_app(settings: Settings | None = None, fetcher: Any = None) -> FastAPI
             fetched_at=now.replace(microsecond=0), results=results, errors=errors
         )
 
+    @app.get("/v1/debug/probe", dependencies=[Depends(require_key)])
+    async def probe(request: Request, symbol: str = Query("PTT")) -> dict[str, Any]:
+        settings: Settings = request.app.state.settings
+        if not settings.enable_debug:
+            raise HTTPException(404, "not found")
+        sym = symbol.strip().upper()
+        if not SYMBOL_RE.match(sym):
+            raise HTTPException(400, "invalid symbol")
+        fetcher = request.app.state.fetcher
+        paths = [
+            settings.corporate_action_path.format(symbol=sym),
+            settings.profile_path.format(symbol=sym),
+        ]
+        return {"probes": [await fetcher.probe(p) for p in paths]}
+
     return app

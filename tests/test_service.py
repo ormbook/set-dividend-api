@@ -80,3 +80,14 @@ def test_fetch_many_isolates_failures_and_classifies_them():
     assert [r["symbol"] for r in results] == ["GOOD"]
     codes = {e["symbol"]: e["code"] for e in errors}
     assert codes == {"MISSING": "NOT_FOUND", "DOWN": "UPSTREAM_ERROR", "BAD": "PARSE_ERROR"}
+
+
+def test_upstream_error_detail_is_reported():
+    f = FakeFetcher(
+        {
+            ca_path("X"): SetUpstreamError("HTTP 403 from https://www.set.or.th/api/set/stock/X/corporate-action"),
+            pf_path("X"): {"paidUpShare": 5},
+        }
+    )
+    _, errors = asyncio.run(fetch_many(["X"], f, S, TODAY))
+    assert errors[0]["code"] == "UPSTREAM_ERROR" and "HTTP 403" in errors[0]["detail"]

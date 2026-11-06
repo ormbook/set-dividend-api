@@ -85,6 +85,24 @@ class SetClient:
                     await asyncio.sleep(0.5 * 2**attempt)
         raise SetUpstreamError(str(last_error))
 
+    async def probe(self, path: str) -> dict[str, Any]:
+        """Raw diagnostic call: status, content type and the start of the body."""
+        url = self._s.set_base_url.rstrip("/") + path
+        try:
+            if self._use_curl:
+                resp = await self._session.get(url, timeout=self._s.timeout_seconds)
+            else:
+                resp = await self._session.get(url)
+        except Exception as exc:
+            return {"url": url, "error": f"{type(exc).__name__}: {exc}"}
+        return {
+            "url": url,
+            "client": "curl_cffi" if self._use_curl else "httpx",
+            "status": resp.status_code,
+            "content_type": resp.headers.get("content-type"),
+            "body_head": resp.text[:600],
+        }
+
     async def _request(self, url: str) -> Any:
         try:
             if self._use_curl:

@@ -56,7 +56,7 @@ async def fetch_many(
         if isinstance(outcome, SetNotFound):
             errors.append({"symbol": symbol, "code": "NOT_FOUND"})
         elif isinstance(outcome, SetUpstreamError):
-            errors.append({"symbol": symbol, "code": "UPSTREAM_ERROR"})
+            errors.append({"symbol": symbol, "code": "UPSTREAM_ERROR", "detail": str(outcome)[:300]})
         elif isinstance(outcome, SetParseError):
             errors.append({"symbol": symbol, "code": "PARSE_ERROR", "detail": str(outcome)})
         elif isinstance(outcome, BaseException):

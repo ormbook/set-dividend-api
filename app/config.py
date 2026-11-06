@@ -30,6 +30,10 @@ class Settings:
     cache_ttl_seconds: int = field(default_factory=lambda: _int("CACHE_TTL_SECONDS", 600))
 
     # --- API ----------------------------------------------------------------
+    # Enables GET /v1/debug/probe (raw SET status/body snippet). Off by default.
+    enable_debug: bool = field(
+        default_factory=lambda: os.getenv("ENABLE_DEBUG", "").lower() in ("1", "true", "yes")
+    )
     max_symbols: int = field(default_factory=lambda: _int("MAX_SYMBOLS", 50))
     # Comma-separated keys. Empty = auth disabled (fine for local dev only).
     api_keys: frozenset[str] = field(
