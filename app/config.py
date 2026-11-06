@@ -24,6 +24,10 @@ class Settings:
     profile_path: str = field(
         default_factory=lambda: os.getenv("SET_PROFILE_PATH", "/api/set/stock/{symbol}/profile")
     )
+    # curl_cffi browser fingerprint (e.g. chrome, safari, firefox). Empty = no impersonation.
+    impersonate: str = field(default_factory=lambda: os.getenv("SET_IMPERSONATE", "chrome"))
+    # Force protocol: v1 (HTTP/1.1) or v2. Empty = library default. Try v1 if you see HTTP2 framing errors.
+    http_version: str = field(default_factory=lambda: os.getenv("SET_HTTP_VERSION", ""))
     timeout_seconds: float = field(default_factory=lambda: _float("SET_TIMEOUT_SECONDS", 10))
     max_retries: int = field(default_factory=lambda: _int("SET_MAX_RETRIES", 2))
     max_concurrency: int = field(default_factory=lambda: _int("SET_MAX_CONCURRENCY", 4))

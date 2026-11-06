@@ -45,7 +45,10 @@ class SetClient:
         try:
             from curl_cffi.requests import AsyncSession  # type: ignore
 
-            self._session = AsyncSession(impersonate="chrome", headers=BROWSER_HEADERS)
+            kwargs: dict[str, Any] = {"headers": BROWSER_HEADERS}
+            if self._s.impersonate:
+                kwargs["impersonate"] = self._s.impersonate
+            self._session = AsyncSession(**kwargs)
             self._use_curl = True
         except ImportError:
             import httpx
@@ -85,19 +88,26 @@ class SetClient:
                     await asyncio.sleep(0.5 * 2**attempt)
         raise SetUpstreamError(str(last_error))
 
+    async def _get(self, url: str) -> Any:
+        if self._use_curl:
+            kwargs: dict[str, Any] = {"timeout": self._s.timeout_seconds}
+            if self._s.http_version:
+                kwargs["http_version"] = self._s.http_version
+            return await self._session.get(url, **kwargs)
+        return await self._session.get(url)
+
     async def probe(self, path: str) -> dict[str, Any]:
         """Raw diagnostic call: status, content type and the start of the body."""
         url = self._s.set_base_url.rstrip("/") + path
         try:
-            if self._use_curl:
-                resp = await self._session.get(url, timeout=self._s.timeout_seconds)
-            else:
-                resp = await self._session.get(url)
+            resp = await self._get(url)
         except Exception as exc:
             return {"url": url, "error": f"{type(exc).__name__}: {exc}"}
         return {
             "url": url,
             "client": "curl_cffi" if self._use_curl else "httpx",
+            "impersonate": self._s.impersonate,
+            "http_version": self._s.http_version or "default",
             "status": resp.status_code,
             "content_type": resp.headers.get("content-type"),
             "body_head": resp.text[:600],
@@ -105,10 +115,7 @@ class SetClient:
 
     async def _request(self, url: str) -> Any:
         try:
-            if self._use_curl:
-                resp = await self._session.get(url, timeout=self._s.timeout_seconds)
-            else:
-                resp = await self._session.get(url)
+            resp = await self._get(url)
         except Exception as exc:  # network/TLS/timeout, library-specific types
             raise SetUpstreamError(f"{type(exc).__name__}: {exc}") from exc
 
