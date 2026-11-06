@@ -79,6 +79,20 @@ X-API-Key: <key>
 3. **เงื่อนไขการใช้งานข้อมูล**: endpoint เหล่านี้ไม่ใช่ API สาธารณะที่มีสัญญารับรอง ถ้าใช้เชิงธุรกิจควรพิจารณา SETSMART (ข้อมูล corporate action ผ่าน API แบบ JSON ที่ SET ขาย) หรือสอบถามฝ่ายข้อมูลของ SET
 4. แคชผลจาก SET ไว้ 10 นาที (`CACHE_TTL_SECONDS`) และจำกัดการยิงพร้อมกัน (`SET_MAX_CONCURRENCY`) เพื่อไม่ให้ SET บล็อก
 
+## Deploy ฟรีบน Render (ได้ URL สาธารณะ)
+
+1. เข้า https://render.com สมัครด้วย GitHub (ไม่ต้องใช้บัตรเครดิต)
+2. New → **Blueprint** → เลือก repo `set-dividend-api` → Apply (อ่านค่าจาก `render.yaml`)
+3. รอ build เสร็จ จะได้ URL เช่น `https://set-dividend-api.onrender.com`
+4. ดู API key ที่ Dashboard → service → Environment → `API_KEYS` (Render สร้างให้แบบสุ่ม)
+5. ทดสอบ: `curl -H "X-API-Key: <key>" "https://<url>/v1/dividends?symbol=PTT"`
+
+ข้อจำกัดของแพ็กเกจฟรี:
+- service หลับเมื่อไม่มีคนเรียก 15 นาที ปลุกใหม่ใช้เวลาราว 1 นาที โปรแกรมที่เรียกวันละครั้งต้องตั้ง timeout ≥ 90 วินาทีและ retry
+- ใช้ได้ 750 ชั่วโมงต่อเดือน, RAM 512 MB
+- IP ของโฮสต์ฟรีอาจถูก SET บล็อก ให้ทดสอบเรียก `/v1/dividends` จริงหลัง deploy ถ้าได้ `UPSTREAM_ERROR` ทุกตัว ดูหัวข้อด้านบน
+- **ต้องมี `API_KEYS` เสมอเมื่อเปิดสาธารณะ** ถ้าไม่ตั้ง API จะไม่มีการยืนยันตัวตน
+
 ## ทดสอบ
 
 ```bash

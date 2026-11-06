@@ -1,0 +1,17 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: set-dividend-api
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # Render generates a random key; read it in Dashboard > Environment.
+      - key: API_KEYS
+        generateValue: true
+      - key: SET_MAX_CONCURRENCY
+        value: "3"
+      - key: CACHE_TTL_SECONDS
+        value: "600"
